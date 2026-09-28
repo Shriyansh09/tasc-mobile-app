@@ -24,21 +24,16 @@ jobs:
         sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libbz2-dev libffi-dev libssl-dev
         pip install --upgrade buildozer cython requests
 
-    - name: Initialize Buildozer Spec Configuration
-      run: |
-        buildozer init
-        # Automatic spec adjustments via sed scripting to pass parameters safely
-        sed -i 's/title = My Application/title = TASC Overlord/' buildozer.spec
-        sed -i 's/package.name = myapp/package.name = tascmobileapp/' buildozer.spec
-        sed -i 's/package.domain = org.test/package.domain = org.tasc/' buildozer.spec
-        sed -i 's/android.api = 33/android.api = 34/' buildozer.spec
-        sed -i 's/#android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
-
     - name: Build Android APK with Buildozer Cloud Toolchain
       run: |
+        # Checking if spec exists, else init
+        if [ ! -f buildozer.spec ]; then
+          buildozer init
+          sed -i 's/android.api = 33/android.api = 34/' buildozer.spec
+          sed -i 's/#android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
+        fi
         yes | buildozer android debug
       env:
-        # Internal configuration variables
         BUILDOZER_WARN_ON_ROOT: 1
 
     - name: Upload Real Installable APK Artifact
